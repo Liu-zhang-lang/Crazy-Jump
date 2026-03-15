@@ -32,7 +32,7 @@ player=pg.sprite.Group()
 inf=pg.sprite.Group()
 g.add(Enemy(1))
 player.add(Player())
-pg.display.set_caption("跳一跳 v1.0.4")
+pg.display.set_caption("跳一跳 v1.0.3")
 #################################主程序#################################
 Draw(g,he,player,inf,seconds,heart)
 texts={
