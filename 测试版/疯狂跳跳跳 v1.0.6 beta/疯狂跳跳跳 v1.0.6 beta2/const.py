@@ -1,0 +1,48 @@
+import pygame as pg
+import os
+pg.init()
+w,h=800,600
+level_up_time=[
+    [15,17],
+    [30,32],
+    [45,47],
+    [70,72],
+    [90,92]
+]
+all_pro=[
+    0.008,
+    0.016,
+    0.032,
+    0.045,
+    0.052
+]
+all_hpro=[
+    0.0015,
+    0.003,
+    0.004,
+    0.006,
+    0.007
+]
+all_fpro=[
+    0.0005,
+    0.001,
+    0.00125,
+    0.0014,
+    0.0017
+]
+all_rpro=[
+    0,
+    0.002,
+    0.004,
+    0.01,
+    0.03
+]
+clock=pg.time.Clock()
+window=pg.display.set_mode((w,h))
+font_file=os.path.join(os.path.dirname(__file__),"fonts","simsun.ttc") #加载字体
+chinese_font_lit=pg.font.Font(font_file,20)
+chinese_font_lit_size=20
+chinese_font=pg.font.Font(font_file,25)
+chinese_font_size=25
+chinese_font_big=pg.font.Font(font_file,45)
+chinese_font_big_size=45
