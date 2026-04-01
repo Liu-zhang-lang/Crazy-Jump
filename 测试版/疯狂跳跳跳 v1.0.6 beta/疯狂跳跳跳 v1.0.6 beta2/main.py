@@ -1,7 +1,7 @@
 from daoRuKu import DaoRuKu
 #################################检查库#################################
 needPackages={
-    "pygame":"pg",
+    "pygame":"pg"
 }
 DaoRuKu(needPackages)
 input("按下Enter键开始游玩")
