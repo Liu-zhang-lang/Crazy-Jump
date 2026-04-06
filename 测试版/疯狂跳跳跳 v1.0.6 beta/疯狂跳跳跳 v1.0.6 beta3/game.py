@@ -1,9 +1,9 @@
 from const import *
-from daoRuKu import DaoRuKu
 from enemy import Enemy
 from health import Health
 from player import Player
 from info import Info
+from debug import Debug
 from floor import Floor
 from rain import Rain
 import pygame as pg
@@ -25,7 +25,8 @@ class Game:
         self.is_restart=False
         self.is_debug=False
         self.god_mode=False
-        self.is_level_up_time=False
+        self.is_update_level=False
+        self.debug=Debug(self)
         self.enemy=pg.sprite.Group()
         self.health=pg.sprite.Group()
         self.player=pg.sprite.Group()
@@ -36,7 +37,7 @@ class Game:
         self.enemy.add(Enemy(1))
         self.floor.add(Floor(0,500,w))
     def drawTexts(self,texts):
-        real_pos=list()
+        real_pos=list([0,0])
         for text,val_list in texts.items():
             pos=list(val_list[0])
             font=val_list[1]
@@ -61,63 +62,10 @@ class Game:
             elif alignment=="center":
                 window.blit(text,text.get_rect(center=real_pos))
             else:
-                print("[error:drawTexts]未知的对齐方式")
-    def debug(self):
+                print("[error:Game,drawTexts]未知的对齐方式")
+    def start_debug(self):
         self.is_debug=True
-        s=input("请输入指令：")
-        if s=="god":
-            self.god_mode=not self.god_mode
-            print("成功！")
-        elif s=="spawn":
-            s=input("请输入类型：")
-            if s=="enemy":
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.enemy.add(Enemy(0))
-                print("成功！")
-            elif s=="nor_enemy":
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.enemy.add(Enemy(1))
-                print("成功！")
-            elif s=="super_enemy":
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.enemy.add(Enemy(2))
-                print("成功！")
-            elif s=="health":
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.health.add(Health(0))
-                print("成功！")
-            elif s=="nor_health":
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.health.add(Health(1))
-                print("成功！")
-            elif s=="super_health":
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.health.add(Health(2))
-                print("成功！")
-            elif s=="floor":
-                x=int(input("请输入x坐标："))
-                y=int(input("请输入y坐标："))
-                l=int(input("请输入长度："))
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.floor.add(Floor(x,y,l))
-                print("成功！")
-            elif s=="rain":
-                l=int(input("请输入长度："))
-                n=int(input("请输入个数："))
-                for i in range(n):
-                    self.rain.add(Rain(l))
-                print("成功！")
-            else:
-                print("未知的指令")
-        else:
-            print("未知的指令")
+        self.debug.start()
     def draw(self):
         window.fill("black")
         self.enemy.draw(window)
@@ -148,7 +96,7 @@ class Game:
         pg.display.update()
     def rules(self):
         texts={
-            "游戏规则&玩法：":[(50,70),chinese_font,"white"],
+            "游戏规则&玩法：":[(50,60),chinese_font,"white"],
             "使用左右键或AD键进行左右移动，空格键、W键或上键进行跳跃":[(0,35),chinese_font,"white",2],
             "按下Esc暂停游戏，按下Esc或Enter继续":[(0,35),chinese_font,"white",2],
             "躲避红色/紫色(加强)敌人和天空中的雨水":[(0,35),chinese_font,"white",2],
@@ -157,6 +105,7 @@ class Game:
             "按两次跳跃可以二段跳":[(0,35),chinese_font,"white",2],
             "地图中会随机生成地板，可供站立3秒":[(0,35),chinese_font,"white",2],
             "在暂停模式下，按下L查看规则，按R重开":[(0,35),chinese_font,"white",2],
+            "若在运行过程中在终端发现[error...]的错误，请报告给作者":[(0,35),chinese_font,"white",2],
             "阅读完毕后，按下Enter键退出规则页面":[(0,35),chinese_font,"white",2]
         }
         self.drawTexts(texts)
@@ -197,7 +146,7 @@ class Game:
                         waiting=False
             keys=pg.key.get_pressed()
             if (keys[pg.K_LCTRL] or keys[pg.K_RCTRL]) and keys[pg.K_d]:
-                self.debug()
+                self.start_debug()
             if keys[pg.K_r]:
                 self.is_restart=1
                 break
@@ -232,7 +181,7 @@ class Game:
             keys=pg.key.get_pressed()
             if keys[pg.K_RETURN]:
                 break
-        clock.tick(60)
+            clock.tick(60)
     def eventHandle(self):
         for ev in pg.event.get():
             if ev.type==pg.QUIT:
@@ -307,6 +256,7 @@ class Game:
             self.minutes+=1
         if self.heart<0:
             self.heart=0
+        self.draw()
     def run(self):
         self.gameStart()
         while True:
@@ -320,7 +270,6 @@ class Game:
                         if ev.key==pg.K_ESCAPE:
                             self.gameStop()
                 self.update()
-                self.draw()
                 if self.heart<=0 or self.is_restart==1:
                     if self.is_restart==0:
                         self.gameOver()

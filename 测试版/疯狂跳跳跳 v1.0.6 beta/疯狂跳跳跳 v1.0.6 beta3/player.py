@@ -11,7 +11,7 @@ class Player(pg.sprite.Sprite):
         self.rect.centerx=window.get_rect().centerx
         self.velocity_y=0
         self.jumping=2#剩余跳跃次数
-        self.jumping_wait=0#跳跃冷却时间
+        self.jumping_cd=0#跳跃冷却时间
     def update(self):
         keys=pg.key.get_pressed()
         if keys[pg.K_LEFT] or keys[pg.K_a]:
@@ -22,12 +22,12 @@ class Player(pg.sprite.Sprite):
             self.rect.x=0
         if self.rect.x+self.pw>w:
             self.rect.x=w-self.pw
-        if (keys[pg.K_SPACE] or keys[pg.K_UP] or keys[pg.K_w]) and self.jumping>0 and self.jumping_wait<=0:
+        if (keys[pg.K_SPACE] or keys[pg.K_UP] or keys[pg.K_w]) and self.jumping>0 and self.jumping_cd<=0:
             self.jumping-=1
-            self.jumping_wait=0.3
+            self.jumping_cd=0.3
             self.velocity_y=-14
-        if self.jumping_wait>0:
-            self.jumping_wait-=1/60
+        if self.jumping_cd>0:
+            self.jumping_cd-=1/clock.get_fps()
         self.rect.y+=self.velocity_y
         self.velocity_y+=0.8
     def touch_floor(self,floor):

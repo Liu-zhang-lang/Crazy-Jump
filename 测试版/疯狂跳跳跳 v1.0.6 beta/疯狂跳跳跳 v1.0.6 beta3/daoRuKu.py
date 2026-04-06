@@ -31,7 +31,7 @@ def DaoRuKu(needPackages):
                 print(f"pip install {pck}")
                 tm.sleep(0.2)
             print("程序已退出，请自行安装后重新运行")
-            sys.exit(0)
+            return
     print("\033[32m✓\033[0m 所有库都已安装完毕")
     for pck,alias in needPackages.items():
         globals()[alias]=ipl.import_module(pck)

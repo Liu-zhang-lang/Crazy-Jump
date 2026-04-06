@@ -10,7 +10,6 @@ class Rain(pg.sprite.Sprite):
         self.image=pg.Surface((8,self.len),pg.SRCALPHA)
         pg.draw.rect(self.image,"#27A2D7",(0,0,8,self.len))
         self.image=pg.transform.rotate(self.image,-45)
-        pg.transform.rotate(self.image,45)
         self.rect=self.image.get_rect()
         self.rect.x=rd.randint(100,w)
         self.rect.y=-50
