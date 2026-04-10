@@ -6,6 +6,7 @@ from info import Info
 from debug import Debug
 from floor import Floor
 from rain import Rain
+from inputBox import InputBox
 import pygame as pg
 import random as rd
 import sys
@@ -26,7 +27,6 @@ class Game:
         self.is_debug=False
         self.god_mode=False
         self.is_update_level=False
-        self.debug=Debug(self)
         self.enemy=pg.sprite.Group()
         self.health=pg.sprite.Group()
         self.player=pg.sprite.Group()
@@ -36,36 +36,39 @@ class Game:
         self.player.add(Player())
         self.enemy.add(Enemy(1))
         self.floor.add(Floor(0,500,w))
+        self.info=Info.add_info(self.info,"",[w,chinese_font_size*2],"topright",color="white",time=-1)
     def drawTexts(self,texts):
         real_pos=list([0,0])
         for text,val_list in texts.items():
             pos=list(val_list[0])
             font=val_list[1]
             color=val_list[2]
-            alignment="topleft"
+            align="topleft"
             if len(val_list)>=4 and val_list[3]==2:
                 real_pos[0]+=pos[0]
                 real_pos[1]+=pos[1]
             else:
                 real_pos=pos
             if len(val_list)>=5:
-                alignment=val_list[4]
+                align=val_list[4]
             text=font.render(text,True,color)
-            if alignment=="topleft":
+            if align=="topleft":
                 window.blit(text,real_pos)
-            elif alignment=="topright":
+            elif align=="topright":
                 window.blit(text,text.get_rect(topright=real_pos))
-            elif alignment=="bottomleft":
+            elif align=="bottomleft":
                 window.blit(text,text.get_rect(bottomleft=real_pos))
-            elif alignment=="bottomright":
+            elif align=="bottomright":
                 window.blit(text,text.get_rect(bottomright=real_pos))
-            elif alignment=="center":
+            elif align=="center":
                 window.blit(text,text.get_rect(center=real_pos))
             else:
                 print("[error:Game,drawTexts]未知的对齐方式")
+        pg.display.update()
     def start_debug(self):
         self.is_debug=True
-        self.debug.start()
+        debug=Debug(self)
+        debug.start()
     def draw(self):
         window.fill("black")
         self.enemy.draw(window)
@@ -77,18 +80,10 @@ class Game:
         text={
             f"生命值:{self.heart}":[(w,0),chinese_font,"white",1,"topright"],
             f"FPS:{self.fps:.2f}":[(0,chinese_font_size),chinese_font,"white"],
-            f"阶段:{self.level}":[(w,chinese_font_size),chinese_font,"white",1,"topright"]
+            f"阶段:{self.level}":[(w,chinese_font_size),chinese_font,"white",1,"topright"],
+            (f"时间:{self.minutes}分{self.seconds:.2f}秒" if self.minutes>0 else f"时间:{self.seconds:.2f}秒"):[(0,0),chinese_font,"white"]
         }
         self.drawTexts(text)
-        if self.minutes>0:
-            texts={
-                f"时间:{self.minutes}分{self.seconds:.2f}秒":[(0,0),chinese_font,"white"]
-            }
-        else:
-            texts={
-                f"时间:{self.seconds:.2f}秒":[(0,0),chinese_font,"white"]
-            }
-        self.drawTexts(texts)
         for a in level_up_time:
             if a[0]<=self.minutes*60+self.seconds<=a[1]:
                 text=chinese_font_big.render("难度升级!",True,"white")
@@ -120,21 +115,9 @@ class Game:
         pg.display.set_caption("疯狂跳跳跳")
         self.draw()
         self.rules()
-        while True:
-            self.eventHandle()
-            keys=pg.key.get_pressed()
-            if keys[pg.K_RETURN]:
-                break
-            clock.tick(60)
     def gameStop(self):
         waiting=True
-        texts={
-            "游戏暂停":[(w/2,h/2-55),chinese_font_big,"white",1,"center"],
-            "按Esc或Enter继续游戏":[(w/2,h/2),chinese_font,"white",1,"center"],
-            "按R重新开始":[(w/2,h/2+35),chinese_font,"white",1,"center"],
-            "按L查看规则":[(0,35),chinese_font,"white",2,"center"]
-        }
-        self.drawTexts(texts)
+        self.drawTexts(gamestop_texts)
         pg.display.update()
         while waiting:
             for ev in pg.event.get():
@@ -154,23 +137,15 @@ class Game:
                 self.draw()
                 self.rules()
                 self.draw()
-                self.drawTexts(texts)
+                self.drawTexts(gamestop_texts)
                 pg.display.update()
             clock.tick(60)
     def gameOver(self):
         texts={
             "你死了！":[(w/2,h/2-55),chinese_font_big,"white",1,"center"],
+            (f"你存活了{self.minutes}分{self.seconds:.2f}秒" if self.minutes>0 else f"你存活了{self.seconds:.2f}秒"):[(w/2,h/2),chinese_font,"white",1,"center"],
             "按Enter重新开始":[(w/2,h/2+35),chinese_font,"white",1,"center"]
         }
-        self.drawTexts(texts)
-        if self.minutes>0:
-            texts={
-                f"你存活了{self.minutes}分{self.seconds:.2f}秒":[(w/2,h/2),chinese_font,"white",1,"center"]
-            }
-        else:
-            texts={
-                f"你存活了{self.seconds:.2f}秒":[(w/2,h/2),chinese_font,"white",1,"center"]
-            }
         self.drawTexts(texts)
         if self.is_debug:
             text=chinese_font_lit.render("(使用了debug调试)",True,"yellow")
@@ -183,10 +158,12 @@ class Game:
                 break
             clock.tick(60)
     def eventHandle(self):
-        for ev in pg.event.get():
+        events=pg.event.get()
+        for ev in events:
             if ev.type==pg.QUIT:
                 pg.quit()
                 sys.exit(0)
+        return events
     def check_collisions(self):
         co=pg.sprite.groupcollide(self.player,self.floor,False,False)
         for p,e_l in co.items():#地面碰撞检测
@@ -199,25 +176,25 @@ class Game:
             for e in e_l:
                 if e.b==40:
                     self.heart+=25
-                    self.info=Info.add_info(self.info,f"生命值+25","green")
+                    self.info=Info.append_info(self.info,f"生命值+25",[w,chinese_font_size*2],"topright",color="green",time=2)
                 else:
                     self.heart+=int(e.b//3)
-                    self.info=Info.add_info(self.info,f"生命值+{int(e.b//3)}","green")
+                    self.info=Info.append_info(self.info,f"生命值+{int(e.b//3)}",[w,chinese_font_size*2],"topright",color="green",time=2)
         if self.god_mode==False:
             co=pg.sprite.groupcollide(self.player,self.enemy,False,True)
             for p,e_l in co.items():#敌人碰撞检测
                 for e in e_l:
                     if abs(e.speed)==12:
                         self.heart-=int(e.b//1.8)
-                        self.info=Info.add_info(self.info,f"生命值-{int(e.b//1.8)}","red")
+                        self.info=Info.append_info(self.info,f"生命值-{int(e.b//1.8)}",[w,chinese_font_size*2],"topright",color="red",time=2)
                     else:
                         self.heart-=int(e.b//3)
-                        self.info=Info.add_info(self.info,f"生命值-{int(e.b//3)}","red")
+                        self.info=Info.append_info(self.info,f"生命值-{int(e.b//3)}",[w,chinese_font_size*2],"topright",color="red",time=2)
             co=pg.sprite.groupcollide(self.player,self.rain,False,True,pg.sprite.collide_mask) #pg.sprite.collide_mask是精确检测
             for p,e_l in co.items():#雨碰撞检测
                 for e in e_l:
                     self.heart-=int(e.len/6.5)
-                    self.info=Info.add_info(self.info,f"生命值-{int(e.len/6.5)}","red")
+                    self.info=Info.append_info(self.info,f"生命值-{int(e.len/6.5)}",[w,chinese_font_size*2],"topright",color="red",time=2)
     def update(self):
         self.enemy.update()
         self.health.update()
@@ -249,8 +226,7 @@ class Game:
         if rd.random()<=self.rpro:#生成雨
             self.rain.add(Rain(-1))
         self.fps=clock.get_fps()
-        if self.fps>0:
-            self.seconds+=1/self.fps
+        self.seconds+=1/60
         if self.seconds>=60:
             self.seconds-=60
             self.minutes+=1

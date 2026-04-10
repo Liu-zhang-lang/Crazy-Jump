@@ -27,7 +27,7 @@ class Player(pg.sprite.Sprite):
             self.jumping_cd=0.3
             self.velocity_y=-14
         if self.jumping_cd>0:
-            self.jumping_cd-=1/clock.get_fps()
+            self.jumping_cd-=1/60
         self.rect.y+=self.velocity_y
         self.velocity_y+=0.8
     def touch_floor(self,floor):

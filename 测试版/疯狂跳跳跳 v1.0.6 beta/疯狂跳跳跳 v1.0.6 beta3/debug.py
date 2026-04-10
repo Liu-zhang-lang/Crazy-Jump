@@ -1,12 +1,13 @@
+import pygame as pg
 from enemy import Enemy
 from health import Health
-from player import Player
+from info import Info
 from floor import Floor
 from rain import Rain
+from inputBox import InputBox
+from const import *
 class Debug:
     def __init__(self,game):
-        self.game=game
-        self.is_quit=False
         self.commands_tree={
             "tag":"down",
             "tip":"输入命令",
@@ -98,18 +99,23 @@ class Debug:
                     "tip":"退出debug模式",
                     "params":[],
                     "func":self.quit
-                },
-                "help":{
-                    "tag":"run",
-                    "tip":"帮助",
-                    "params":[],
-                    "func":self.start_help
                 }
             }
         }
+        self.help_texts={}
+        self.game=game
+        self.is_quit=False
+        self.info=pg.sprite.Group()
     def start(self):
+        self.start_help()
+        self.gray_img=pg.Surface((w,h),pg.SRCALPHA)
+        self.gray_img.fill((128,128,128,200))
+        window.blit(self.gray_img,(0,0))
+        self.game.drawTexts(self.help_texts)
         while not self.is_quit:
             self.exec_node(self.commands_tree)
+        self.game.draw()
+        self.game.drawTexts(gamestop_texts)
     def check_type(self,type_name,data):
         try:
             type_name(data)
@@ -118,31 +124,78 @@ class Debug:
             return False
     def exec_node(self,node):
         if node["tag"]=="down":
-            cmd=input("> "+node["print"]+"：")
+            inputbox=pg.sprite.Group()
+            inputbox.add(InputBox(50,50,200,50,"white","black",node["print"]+":",is_selected=True))
+            running=True
+            last_info_size=len(self.info)
+            while running:
+                events=self.game.eventHandle()
+                self.info.update()
+                self.info.draw(window)
+                if len(self.info)!=last_info_size:
+                    self.game.draw()
+                    self.game.drawTexts(gamestop_texts)
+                    window.blit(self.gray_img,(0,0))
+                    self.game.drawTexts(self.help_texts)
+                last_info_size=len(self.info)
+                inputbox.update(events)
+                inputbox.draw(window)
+                pg.display.update()
+                for ib in inputbox:
+                    if ib.check_finished():
+                        cmd=ib.get_input_text()
+                        ib.kill()
+                        running=False
+                        break
+                clock.tick(60)
             if cmd in node["subs"]:
                 self.exec_node(node["subs"][cmd])
             else:
-                print("命令不存在！")
+                self.info=Info.append_info(self.info,node["print"]+"不存在！",[50,110],font=chinese_font_lit,color="red")
         elif node["tag"]=="run":
             data=[]
             for lst in node["params"]:
                 typ=lst["type"]
-                tip=lst["print"]
-                t=input("> "+tip+"：")
-                if self.check_type(typ,t):
-                    data.append(typ(t))
+                tip=lst["tip"]
+                inputbox=pg.sprite.Group()
+                inputbox.add(InputBox(50,50,200,50,"white","black",tip+":",is_selected=True))
+                running=True
+                last_info_size=len(self.info)
+                text=""
+                while running:
+                    events=self.game.eventHandle()
+                    self.info.update()
+                    self.info.draw(window)
+                    if len(self.info)!=last_info_size:
+                        self.game.draw()
+                        self.game.drawTexts(gamestop_texts)
+                        window.blit(self.gray_img,(0,0))
+                        self.game.drawTexts(self.help_texts)
+                    last_info_size=len(self.info)
+                    inputbox.update(events)
+                    inputbox.draw(window)
+                    pg.display.update()
+                    for ib in inputbox:
+                        if ib.check_finished():
+                            text=ib.get_input_text()
+                            ib.kill()
+                            running=False
+                            break
+                    clock.tick(60)
+                if self.check_type(typ,text):
+                    data.append(typ(text))
                 else:
-                    print("数据类型错误！")
+                    self.info=Info.append_info(self.info,"数据类型错误！",[50,110],font=chinese_font_lit,color="red")
                     return
             try:
                 node["func"](*data)
-                print("成功！")
+                self.info=Info.append_info(self.info,"成功！",[50,110],font=chinese_font_lit,color="green")
             except TypeError:
-                print("[error:Debug,exec_node]数据类型错误")
+                print("[error:Debug,exec_node]数据类型错误？")
             except NameError:
                 print("[error:Debug,exec_node]函数不存在")
             except:
-                print("[error:Debug,exec_node]未知错误/help内部错误")
+                print(f"[error:Debug,exec_node]未知错误/(提示："+node["tip"]+")内部错误")
         else:
             print("[error:Debug,exec_node]未知的tag")
     def spawn_enemy(self,n):
@@ -174,15 +227,19 @@ class Debug:
     def quit(self):
         self.is_quit=True
     def start_help(self):
+        self.cnt=-1
         for sub in self.commands_tree["subs"]:
-            self.help(self.commands_tree["subs"][sub],"",sub)
-    def help(self,node,space,name):
+            self.get_help_texts(self.commands_tree["subs"][sub],"",sub)
+        self.game.drawTexts(self.help_texts)
+    def get_help_texts(self,node,space,name):
+        self.cnt+=1
         if node["tag"]=="down":
-            print(space+"- "+name+"["+node["tip"]+"]")
+            text=space+"- "+name+"["+node["tip"]+"]"
+            self.help_texts[text]=[(270,self.cnt*30+50),chinese_font_lit,"white"]
             for sub in node["subs"]:
-                self.help(node["subs"][sub],space+"  ",sub)
+                self.get_help_texts(node["subs"][sub],space+"  ",sub)
         elif node["tag"]=="run":
-            print(space+"- "+name+"["+node["tip"]+"]",end="")
+            text=space+"- "+name+"["+node["tip"]+"]"
             for lst in node["params"]:
-                print("+"+lst["tip"],end="")
-            print()
+                text+="+"+lst["tip"]
+            self.help_texts[text]=[(270,self.cnt*30+50),chinese_font_lit,"white"]

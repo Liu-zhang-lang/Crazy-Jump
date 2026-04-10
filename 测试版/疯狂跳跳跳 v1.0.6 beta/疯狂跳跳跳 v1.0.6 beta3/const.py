@@ -46,3 +46,9 @@ chinese_font=pg.font.Font(font_file,25)
 chinese_font_size=25
 chinese_font_big=pg.font.Font(font_file,45)
 chinese_font_big_size=45
+gamestop_texts={
+    "游戏暂停":[(w/2,h/2-55),chinese_font_big,"white",1,"center"],
+    "按Esc或Enter继续游戏":[(w/2,h/2),chinese_font,"white",1,"center"],
+    "按R重新开始":[(w/2,h/2+35),chinese_font,"white",1,"center"],
+    "按L查看规则":[(0,35),chinese_font,"white",2,"center"]
+}
