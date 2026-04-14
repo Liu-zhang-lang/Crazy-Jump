@@ -1,3 +1,5 @@
+对不起，我英语不好，所以只能说中文。
+Sorry, my English is poor, so I only speak Chinese.
 ### 介绍
 游戏的中文名为疯狂跳跳跳，以前的名字叫跳一跳，是一个自制python小游戏  
 打开版本文件夹后，打开 `main.py` 运行  
