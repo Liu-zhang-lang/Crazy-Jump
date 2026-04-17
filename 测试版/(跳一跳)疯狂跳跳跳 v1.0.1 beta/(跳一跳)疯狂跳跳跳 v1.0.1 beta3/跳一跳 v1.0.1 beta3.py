@@ -19,7 +19,7 @@ class health(Sprite):
         else:
             pg.draw.rect(self.image,"yellow",(0,0,self.b,self.b))
         self.image.blit(self.number_text,self.number_text.get_rect(center=(self.b//2,self.b//2)))
-class enemy(Sprite):
+class Enemy(Sprite):
     def __init__(self,f):
         super().__init__()
         self.minspeed=2

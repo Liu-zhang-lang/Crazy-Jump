@@ -12,7 +12,7 @@ class health(Sprite):
         self.image=pg.Surface((self.b,self.b))
         pg.draw.rect(self.image,"green",(0,0,self.b,self.b))
         self.image.blit(self.number_text,self.number_text.get_rect(center=(self.b//2,self.b//2)))
-class enemy(Sprite):
+class Enemy(Sprite):
     def __init__(self):
         super().__init__()
         self.minspeed=2
