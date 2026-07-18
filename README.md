@@ -1,9 +1,11 @@
 对不起，我英语不好，所以只能说中文。  
 Sorry, my English is poor, so I only speak Chinese.
 ### 介绍
-游戏的中文名为疯狂跳跳跳，以前的名字叫跳一跳，是一个自制python小游戏  
+游戏的中文名为疯狂跳跳跳，以前的名字叫跳一跳，是一个自制 python 小游戏  
 打开版本文件夹后，打开 `main.py` 运行  
 有些版本的 `__pycache__` 文件可能没删，这些文件不需要下载
+### 注意事项
+本游戏目前依赖官方 pygame 库，如果您的 python 版本为 3.14，请更换为 3.13 及以下的版本，谢谢！
 ### 展示
 [![peVSbbq.md.png](https://s41.ax1x.com/2026/03/15/peVSbbq.md.png)](https://imgchr.com/i/peVSbbq)
 [![peVSI2Q.md.png](https://s41.ax1x.com/2026/03/15/peVSI2Q.md.png)](https://imgchr.com/i/peVSI2Q)
